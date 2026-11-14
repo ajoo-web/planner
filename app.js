@@ -134,7 +134,7 @@ function vHabits() {
   const today = todayStr(), ws = U.hw, we = addDays(ws, 6), edit = U.editHabits, a = parse(ws), b = parse(we);
   const title = shortDate(ws) + ' – ' + (a.getMonth() === b.getMonth() ? '' : mon3(b.getMonth()) + ' ') + b.getDate();
   const days = [...Array(7)].map((_, i) => addDays(ws, i));
-  const nav = `<div class="wnav"><button class="ib" data-a="hprev" aria-label="Previous week">${ic('left', 20, 2.2)}</button><b>${title}</b><button class="ib" data-a="hnext" aria-label="Next week">${ic('right', 20, 2.2)}</button></div>`;
+  const nav = `<div class="nvrow"><div class="nl"><button class="pill sm" data-a="hToday">Today</button></div><div class="wnav"><button class="ib sm" data-a="hprev" aria-label="Previous week">${ic('left', 20, 2.2)}</button><b>${title}</b><button class="ib sm" data-a="hnext" aria-label="Next week">${ic('right', 20, 2.2)}</button></div><div></div></div>`;
   if (!S.habits.length && !edit) return `${nav}<div class="empty" style="padding-top:36px">No habits yet.</div><div style="text-align:center"><button class="pill solid" data-a="addHabit">${ic('plus', 16, 2.6)}Add a habit</button></div>`;
   let card;
   if (edit) {
@@ -182,7 +182,7 @@ function healthPeriod() {
     const ds = y + '-' + pad(m + 1) + '-' + pad(d), on = S.cycle[ds] === 'period', cls = ['pd', on ? 'on' : '', !on && pred.has(ds) && ds >= today ? 'pred' : '', ds === today ? 'today' : ''].join(' ');
     cells += `<button class="${cls}" data-a="periodDay" data-ds="${ds}" aria-label="${longDate(ds)}${on ? ', period' : ''}"><span>${d}</span></button>`;
   }
-  return `<div class="card pad"><div class="mnav" style="margin:-6px 0 4px"><button class="ib" data-a="pprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt" style="min-width:140px;text-align:center">${MONTHS[m]} ${y}</span><button class="ib" data-a="pnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div>
+  return `<div class="card pad"><div class="nvrow" style="margin:-6px 0 4px"><div class="nl"><button class="pill sm" data-a="pToday">Today</button></div><div class="mnav"><button class="ib sm" data-a="pprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt">${monthName(m)} ${y}</span><button class="ib sm" data-a="pnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div><div></div></div>
 <div class="pgrid">${'SMTWTFS'.split('').map((x) => `<div class="dw">${x}</div>`).join('')}${cells}</div></div>
 <div class="sub" style="margin:8px 4px 0">Tap a day to mark or unmark it.</div>`;
 }
@@ -223,8 +223,6 @@ function render() {
       left = `<button class="pill" data-a="today">Today</button>`;
       center = `<div class="mnav"><button class="ib sm" data-a="mprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt">${monthName(U.mM)} ${U.mY}</span><button class="ib sm" data-a="mnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div>`;
     } else {
-      if (U.tab === 'habits') left = `<button class="pill" data-a="hToday">Today</button>`;
-      if (U.tab === 'health' && U.hTab === 'period') left = `<button class="pill" data-a="pToday">Today</button>`;
       center = `<div class="title">${{ todo: 'To-do', habits: 'Habits', health: 'Health' }[U.tab]}</div>`;
     }
     bar.innerHTML = `<div class="l">${left}</div><div class="c">${center}</div><div class="r">${gear}</div>`;

@@ -109,8 +109,12 @@ svg{display:block;flex:none}
 .link{color:var(--acc);font-weight:700;font-size:14px;padding:8px 2px}
 
 /* ----- habits ----- */
-.wnav{display:flex;align-items:center;justify-content:center;gap:4px;margin:2px 0 8px}
-.wnav b{min-width:150px;text-align:center;font-size:15px;white-space:nowrap}
+.nvrow{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;align-items:center;margin:2px 0 8px}
+.nvrow .ib.sm{width:30px}.nvrow .mnav .tt{font-size:16px}
+.nvrow .nl{justify-self:start}
+.wnav{display:flex;align-items:center;justify-content:center;gap:2px;min-width:0}
+.wnav b{text-align:center;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill.sm{height:30px;padding:0 12px;font-size:13px}
 .hdays,.hrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));justify-items:center}
 .hdays{font-size:11px;font-weight:700;color:var(--mut);padding:10px 0 2px}
 .hdays .tdy{color:var(--acc)}
@@ -208,3 +212,4 @@ svg{display:block;flex:none}
   .ib.sm{width:28px}.pill{padding:0 10px}
   .mnav .tt{font-size:15px}
 }
+@media (max-width:350px){.nvrow .mnav .tt{font-size:14px}.nvrow{grid-template-columns:58px minmax(0,1fr) 58px}.pill.sm{padding:0 9px}}
