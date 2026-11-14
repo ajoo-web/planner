@@ -1,4 +1,5 @@
-import * as C from './core.js';
+import * as C from './core.js?v=9';
+const APP_VERSION = '2026-11-13.9';
 const { CATS, MONTHS, DOW, pad, parse, addDays, diffDays, weekStartOf, daysInMonth, todayStr, eventsOn, holidayOn } = C;
 
 /* ---------- tiny helpers ---------- */
@@ -200,7 +201,7 @@ function vSettings() {
 <div class="h"><span>Backup</span><span style="text-transform:none;letter-spacing:0">${last == null ? 'Not backed up yet' : last === 0 ? 'Last backup: today' : 'Last backup: ' + last + (last === 1 ? ' day ago' : ' days ago')}</span></div>
 <div class="group" style="margin:0"><button class="btnrow" data-a="export">Export a backup file</button><button class="btnrow" data-a="import">Restore from a backup file</button><div class="rw"><span>Monthly reminder</span>${sw('toggleRemind', s.backupReminder, 'Monthly reminder')}</div></div>
 <div class="note" style="margin:8px 4px 0">A backup is a file you keep yourself (Files, iCloud Drive). It is the only way to move to a new phone or recover if this one is lost.</div>
-<div class="h"><span>More</span></div><div class="group" style="margin:0"><button class="btnrow" data-a="importOld">Import from my old planner</button>${standalone ? '' : '<div class="btnrow" style="display:block;padding:12px 14px"><b style="font-weight:600">Install on iPhone</b><small style="display:block">In Safari tap Share, then Add to Home Screen.</small></div>'}<div class="btnrow" style="display:block;padding:12px 14px"><b style="font-weight:600">Storage protected</b><small style="display:block" id="persistInfo">Checking…</small></div><button class="btnrow danger" data-a="wipe">Erase everything on this phone</button></div>
+<div class="h"><span>More</span></div><div class="group" style="margin:0"><button class="btnrow" data-a="importOld">Import from my old planner</button>${standalone ? '' : '<div class="btnrow" style="display:block;padding:12px 14px"><b style="font-weight:600">Install on iPhone</b><small style="display:block">In Safari tap Share, then Add to Home Screen.</small></div>'}<div class="btnrow" style="display:block;padding:12px 14px"><b style="font-weight:600">Storage protected</b><small style="display:block" id="persistInfo">Checking…</small></div><button class="btnrow" data-a="update"><span>Update the app</span><small>Version ${APP_VERSION}</small></button><button class="btnrow danger" data-a="wipe">Erase everything on this phone</button></div>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>`;
 }
 async function updatePersistInfo() {
@@ -424,6 +425,7 @@ const A = {
   pickOld: () => { closeSheet(); $('#fileIn').value = ''; $('#fileIn').click(); },
   confirmOld: () => { if (pendingOld) { C.mergeInto(S, pendingOld); pendingOld = null; save(); closeSheet(); toast('Imported.'); render(); } },
   confirmRestore: () => { if (pendingRestore) { S = C.normalize(pendingRestore); pendingRestore = null; save(); closeSheet(); toast('Backup restored.'); render(); } },
+  update: async () => { toast('Updating…'); try { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map((r) => r.unregister())); const ks = await caches.keys(); await Promise.all(ks.map((k) => caches.delete(k))); } catch (e) {} location.replace(location.pathname + '?u=' + Date.now()); },
   wipe: () => confirmSheet('Erase everything?', "This deletes all planner data from this phone. It can't be undone unless you have a backup.", 'Erase everything', 'doWipe', true),
   doWipe: async () => { await wipe(); closeSheet(); U.tab = 'cal'; U.settings = false; toast('All data erased.'); render(); },
 };
