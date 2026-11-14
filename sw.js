@@ -1,5 +1,5 @@
 // Offline cache for the app shell. Planner data is never touched here: it lives in IndexedDB.
-const VERSION = 'planner-v5';
+const VERSION = 'planner-v6';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'core.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'].concat(
   ['January','February','March','April','May','June','July','August','September','October','November','December'].map((m) => 'stickers/Sticker-' + m + '.png'));
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
