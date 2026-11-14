@@ -182,14 +182,10 @@ function healthPeriod() {
     const ds = y + '-' + pad(m + 1) + '-' + pad(d), on = S.cycle[ds] === 'period', cls = ['pd', on ? 'on' : '', !on && pred.has(ds) && ds >= today ? 'pred' : '', ds === today ? 'today' : ''].join(' ');
     cells += `<button class="${cls}" data-a="periodDay" data-ds="${ds}" aria-label="${longDate(ds)}${on ? ', period' : ''}"><span>${d}</span></button>`;
   }
-  const range = (u) => shortDate(u.a) + (len > 1 ? ' – ' + shortDate(u.b) : '');
-  const rel = (u) => { const n = diffDays(today, u.a); return n > 0 ? 'in ' + n + (n === 1 ? ' day' : ' days') : u.b >= today && n <= 0 ? (n === 0 ? 'starts today' : 'expected now') : ''; };
-  const stats = ups.length ? ups.map((u, i) => `<div class="stat"><span>${i === 0 ? 'Next period' : i === 1 ? 'Then' : 'After that'}</span><b>${range(u)}${i === 0 && rel(u) ? '<br><small class="sub">' + rel(u) + '</small>' : ''}</b></div>`).join('') + `<div class="stat"><span>Average cycle</span><b>${st.avg} days</b></div><div class="stat"><span>Average period</span><b>${len} days</b></div>` : `<div class="sub" style="padding:10px 0 4px">Log a couple of periods and predictions will show up here.</div>`;
   return `<div class="card pad"><div class="mnav" style="margin:-6px 0 4px"><button class="ib" data-a="pprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt" style="min-width:140px;text-align:center">${MONTHS[m]} ${y}</span><button class="ib" data-a="pnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div>
 <div class="pgrid">${'SMTWTFS'.split('').map((x) => `<div class="dw">${x}</div>`).join('')}${cells}</div>
 <div class="legend"><span><i style="background:var(--rose)"></i>Period</span><span><i style="border:2px dashed var(--rose)"></i>Predicted</span></div></div>
-<div class="sub" style="margin:8px 4px 0">Tap a day to mark or unmark it.</div>
-<div class="h"><span>Cycle</span></div><div class="card" style="padding:0 14px">${stats}</div>`;
+<div class="sub" style="margin:8px 4px 0">Tap a day to mark or unmark it.</div>`;
 }
 
 /* ---------- settings ---------- */
