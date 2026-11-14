@@ -22,3 +22,5 @@ t('old import', () => {
   const s = C.mergeInto(C.defaults(), p); C.mergeInto(s, p); assert.equal(s.events.length, 2, 'merge is idempotent'); assert.equal(s.tasks.length, 3);
 });
 t('normalize', () => { const s = C.normalize({ events: 5, settings: { lastBackup: 1 } }); assert.ok(Array.isArray(s.events)); assert.equal(s.settings.lastBackup, 1); assert.equal(s.settings.backupReminder, true); });
+t('period length + streak', () => { const c = { '2026-09-01': 'period', '2026-09-02': 'period', '2026-09-03': 'period', '2026-09-29': 'period', '2026-09-30': 'period', '2026-10-05': 'choc' }; assert.deepEqual(C.periodRuns(c), [3, 2]); assert.equal(C.periodLen(c), 3); assert.equal(C.periodLen({}), null);
+  const log = { '2026-11-13': ['a'], '2026-11-12': ['a', 'b'], '2026-11-11': ['a'], '2026-11-09': ['a'] }; assert.equal(C.habitStreak(log, 'a', '2026-11-13'), 3); assert.equal(C.habitStreak(log, 'b', '2026-11-13'), 1); assert.equal(C.habitStreak(log, 'c', '2026-11-13'), 0); assert.equal(C.habitStreak(log, 'b', '2026-11-12'), 1); assert.equal(C.habitStreak({ '2026-11-12': ['a'] }, 'a', '2026-11-13'), 1); });
