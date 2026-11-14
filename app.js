@@ -20,6 +20,7 @@ const shortDate = (ds) => { const d = parse(ds); return mon3(d.getMonth()) + ' '
 const longDate = (ds) => { const d = parse(ds); return DOW[d.getDay()].slice(0, 3) + ', ' + shortDate(ds); };
 const fmtTime = (t) => { if (!t) return ''; let [h, m] = t.split(':').map(Number); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + (m ? ':' + pad(m) : '') + ' ' + ap; };
 const catOf = (id) => CATS.find((c) => c.id === id) || CATS[0];
+const monthName = (m0) => (innerWidth < 350 ? MONTHS[m0].slice(0, 3) : MONTHS[m0]);
 const monthOf = (ds) => ({ y: +ds.slice(0, 4), m: +ds.slice(5, 7) - 1 });
 
 /* ---------- storage: IndexedDB, on this device only ---------- */
@@ -54,39 +55,41 @@ const TABS = [['cal', 'Calendar', 'cal'], ['todo', 'To-do', 'todo'], ['habits', 
 
 /* ---------- calendar ---------- */
 const isBar = (e) => e.endDate && e.endDate > e.date && (!e.repeat || !e.repeat.type || e.repeat.type === 'none');
-function weekBars(ws) {
+// Every event is a bar: multi-day ones span days, one-day ones fill their cell.
+function weekSegs(ws, maxLanes) {
   const we = addDays(ws, 6), segs = [];
-  S.events.filter((e) => isBar(e) && e.date <= we && e.endDate >= ws)
-    .sort((a, b) => a.date.localeCompare(b.date) || b.endDate.localeCompare(a.endDate) || a.name.localeCompare(b.name))
-    .forEach((e) => {
-      const s = e.date < ws ? ws : e.date, en = e.endDate > we ? we : e.endDate;
-      segs.push({ e, c0: diffDays(ws, s), c1: diffDays(ws, en), startsHere: e.date >= ws, endsHere: e.endDate <= we });
-    });
-  const lanes = []; // last used column per lane
+  S.events.filter((e) => isBar(e) && e.date <= we && e.endDate >= ws).forEach((e) => {
+    const s = e.date < ws ? ws : e.date, en = e.endDate > we ? we : e.endDate;
+    segs.push({ e, c0: diffDays(ws, s), c1: diffDays(ws, en), startsHere: e.date >= ws, endsHere: e.endDate <= we });
+  });
+  for (let i = 0; i < 7; i++) eventsOn(S.events, addDays(ws, i)).filter((e) => !isBar(e)).forEach((e) => segs.push({ e, c0: i, c1: i, startsHere: true, endsHere: true }));
+  segs.sort((a, b) => a.c0 - b.c0 || b.c1 - a.c1 || (a.e.startTime || '').localeCompare(b.e.startTime || '') || a.e.name.localeCompare(b.e.name));
+  const lanes = [], hidden = [0, 0, 0, 0, 0, 0, 0];
   segs.forEach((g) => { let l = lanes.findIndex((end) => end < g.c0); if (l < 0) { l = lanes.length; lanes.push(-1); } lanes[l] = g.c1; g.lane = l; });
-  return segs.filter((g) => g.lane < 3);
+  segs.forEach((g) => { if (g.lane >= maxLanes) for (let c = g.c0; c <= g.c1; c++) hidden[c]++; });
+  return { shown: segs.filter((g) => g.lane < maxLanes), hidden };
 }
-function monthGrid(y, m) {
+function monthPage(y, m, pageH) {
   const first = y + '-' + pad(m + 1) + '-01', last = y + '-' + pad(m + 1) + '-' + pad(daysInMonth(y, m)), today = todayStr();
   const weeks = []; for (let ws = weekStartOf(first); ws <= last; ws = addDays(ws, 7)) weeks.push(ws);
+  const rowH = Math.max(60, Math.floor(pageH / weeks.length)), maxLanes = Math.max(1, Math.floor((rowH - 31 - 12) / 16));
   const rows = weeks.map((ws) => {
-    const bars = weekBars(ws), lanes = bars.reduce((n, g) => Math.max(n, g.lane + 1), 0), h = 46 + lanes * 16;
-    const barSet = new Set(bars.map((g) => g.e.id));
+    const { shown, hidden } = weekSegs(ws, maxLanes);
     const cells = [...Array(7)].map((_, i) => {
-      const ds = addDays(ws, i), d = parse(ds), evs = eventsOn(S.events, ds).filter((e) => !barSet.has(e.id));
-      const dots = evs.slice(0, 3).map((e) => `<i style="--dot:${catOf(e.cat).dot}"></i>`).join('');
+      const ds = addDays(ws, i), d = parse(ds);
       const cls = ['day', d.getMonth() !== m ? 'out' : '', ds === today ? 'today' : '', ds === U.sel ? 'sel' : ''].join(' ');
-      return `<button class="${cls}" data-a="pick" data-ds="${ds}" aria-label="${longDate(ds)}${eventsOn(S.events, ds).length ? ', has events' : ''}"><span class="n">${d.getDate()}</span><span class="dots">${dots}</span></button>`;
+      return `<button class="${cls}" data-a="pick" data-ds="${ds}" aria-label="${longDate(ds)}"><span class="n">${d.getDate()}</span></button>`;
     }).join('');
-    const barHtml = bars.map((g) => {
-      const left = (g.c0 / 7) * 100, w = ((g.c1 - g.c0 + 1) / 7) * 100, inset = (g.startsHere ? 3 : 0), inR = (g.endsHere ? 3 : 0);
-      // show the title where the bar starts (or at the start of each week it continues into)
-      return `<div class="bar ${g.startsHere ? 's' : 'cont'} ${g.endsHere ? 'e' : ''}" style="--dot:${catOf(g.e.cat).dot};left:calc(${left}% + ${inset}px);width:calc(${w}% - ${inset + inR}px);top:${g.lane * 16}px">${esc(g.e.name)}</div>`;
+    const bars = shown.map((g) => {
+      const left = (g.c0 / 7) * 100, w = ((g.c1 - g.c0 + 1) / 7) * 100, inL = g.startsHere ? 2 : 0, inR = g.endsHere ? 2 : 0;
+      return `<div class="bar ${g.startsHere ? 's' : ''} ${g.endsHere ? 'e' : ''}" style="--dot:${catOf(g.e.cat).dot};left:calc(${left}% + ${inL}px);width:calc(${w}% - ${inL + inR}px);top:${g.lane * 16}px">${esc(g.e.name)}</div>`;
     }).join('');
-    return `<div class="wk"><div class="days" style="--h:${h}px">${cells}</div><div class="bars">${barHtml}</div></div>`;
+    const more = hidden.map((n, i) => (n ? `<span class="more" style="left:${(i / 7) * 100}%;width:${100 / 7}%">+${n}</span>` : '')).join('');
+    return `<div class="wk" style="height:${rowH}px"><div class="days">${cells}</div><div class="bars">${bars}</div>${more}</div>`;
   }).join('');
-  return `<div class="cal" id="calgrid"><div class="dow">${'SMTWTFS'.split('').map((x) => `<div>${x}</div>`).join('')}</div>${rows}</div>`;
+  return `<div class="page" style="height:${pageH}px">${rows}</div>`;
 }
+const calSizes = () => { const calH = Math.min(Math.round(innerHeight * 0.65), Math.max(260, ($('#view').clientHeight || innerHeight * 0.8) - 150)); return { calH, pageH: calH - 24 }; };
 function evSub(e, ds) {
   const parts = [];
   if (isBar(e)) parts.push(shortDate(e.date) + ' – ' + shortDate(e.endDate) + ' · day ' + (diffDays(e.date, ds) + 1) + ' of ' + (diffDays(e.date, e.endDate) + 1));
@@ -101,17 +104,16 @@ function taskRow(t, showDue = true) {
   return `<div class="tk ${t.done ? 'done' : ''}"><button class="cbw" data-a="toggleTask" data-id="${t.id}" aria-label="${t.done ? 'Mark not done' : 'Mark done'}: ${esc(t.text)}"><span class="cb ${t.done ? 'on' : ''}">${t.done ? ic('check', 16, 3) : ''}</span></button><button class="tx" data-a="editTask" data-id="${t.id}"><b>${esc(t.text)}</b>${sub}</button></div>`;
 }
 function vCal() {
-  const ds = U.sel, d = parse(ds), hol = holidayOn(ds), evs = eventsOn(S.events, ds);
+  const ds = U.sel, d = parse(ds), hol = holidayOn(ds), evs = eventsOn(S.events, ds), { calH, pageH } = calSizes();
   const tks = S.tasks.filter((t) => !t.done && t.due === ds);
   const needBackup = S.settings.backupReminder && hasData() && !(S.settings.snooze && Date.now() - S.settings.snooze < 7 * 864e5) && (S.settings.lastBackup ? Date.now() - S.settings.lastBackup > 30 * 864e5 : Date.now() - S.settings.created > 7 * 864e5);
   const banner = needBackup ? `<div class="banner"><span>Time to back up. Your data lives only on this phone.</span><button class="pill solid" data-a="export">Back up</button><button class="ib sm" data-a="snooze" aria-label="Dismiss">${ic('x', 18, 2.2)}</button></div>` : '';
-  const sub = hol ? `<small>${esc(hol)}</small>` : '';
   const list = evs.map((e) => `<button class="ev" data-a="editEvent" data-id="${esc(e.id)}"><i style="--dot:${catOf(e.cat).dot}"></i><div><b>${esc(e.name)}</b><span>${evSub(e, ds)}</span></div></button>`).join('')
     + (tks.length ? `<div class="h">To-do</div><div class="card">${tks.map((t) => taskRow(t, false)).join('')}</div>` : '');
-  return `${banner}${monthGrid(U.mY, U.mM)}
-<section class="agenda"><div class="ag-h"><div><h2>${DOW[d.getDay()]}, ${mon3(d.getMonth())} ${d.getDate()}</h2>${sub}</div><button class="pill solid" data-a="newEvent" aria-label="New event">${ic('plus', 16, 2.6)}Event</button></div>
-${list || '<div class="empty">Nothing planned.</div>'}
-<div class="sticker"><img src="stickers/Sticker-${MONTHS[U.mM]}.png" alt=""></div></section>`;
+  const pages = [-1, 0, 1].map((o) => { const t = new Date(U.mY, U.mM + o, 1); return monthPage(t.getFullYear(), t.getMonth(), pageH); }).join('');
+  return `<div class="calwrap" style="height:${calH}px"><div class="dow">${'SMTWTFS'.split('').map((x) => `<div>${x}</div>`).join('')}</div><div class="pager" id="pager" style="height:${pageH}px">${pages}</div></div>
+<section class="agenda">${banner}<div class="ag-h"><div><h2>${DOW[d.getDay()].slice(0, 3)}, ${mon3(d.getMonth())} ${d.getDate()}</h2>${hol ? `<small>${esc(hol)}</small>` : ''}</div><div class="ag-r"><button class="addb" data-a="newEvent" aria-label="New event">${ic('plus', 22, 2.4)}</button></div></div>
+${list || '<div class="empty">Nothing planned.</div>'}<div class="sticker"><img id="stk" src="stickers/Sticker-${MONTHS[d.getMonth()]}.png" width="104" height="104" alt="" decoding="sync"></div></section>`;
 }
 
 /* ---------- to-do ---------- */
@@ -215,19 +217,32 @@ function render() {
   const keep = $('#view').scrollTop, bar = $('#bar');
   const gear = `<button class="ib" data-a="settings" aria-label="Settings">${ic('gear', 24, 1.7)}</button>`;
   if (U.settings) {
+    $('#view').classList.remove('calview');
     bar.innerHTML = `<div class="l"><button class="ib" data-a="back" aria-label="Back">${ic('left', 24, 2)}</button></div><div class="c title">Settings</div><div class="r"></div>`;
     $('#view').innerHTML = vSettings(); updatePersistInfo();
   } else {
     let left = '', center;
     if (U.tab === 'cal') {
       left = `<button class="pill" data-a="today">Today</button>`;
-      center = `<div class="mnav"><button class="ib sm" data-a="mprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt">${MONTHS[U.mM]} ${U.mY}</span><button class="ib sm" data-a="mnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div>`;
+      center = `<div class="mnav"><button class="ib sm" data-a="mprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt">${monthName(U.mM)} ${U.mY}</span><button class="ib sm" data-a="mnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div>`;
     } else center = `<div class="title">${{ todo: 'To-do', habits: 'Habits', health: 'Health' }[U.tab]}</div>`;
     bar.innerHTML = `<div class="l">${left}</div><div class="c">${center}</div><div class="r">${gear}</div>`;
+    $('#view').classList.toggle('calview', U.tab === 'cal');
     $('#view').innerHTML = { cal: vCal, todo: vTodo, habits: vHabits, health: vHealth }[U.tab]();
   }
   $('#tabs').innerHTML = TABS.map(([k, l, i]) => `<button data-a="tab" data-k="${k}" class="${!U.settings && U.tab === k ? 'on' : ''}" ${!U.settings && U.tab === k ? 'aria-current="page"' : ''}>${ic(i, 24, !U.settings && U.tab === k ? 2.1 : 1.7)}${l}</button>`).join('');
   $('#view').scrollTop = keep;
+  wirePager();
+}
+
+function wirePager() {
+  const pg = $('#pager'); if (!pg) return;
+  const h = pg.clientHeight; pg.scrollTop = h; let t;
+  pg.addEventListener('scroll', () => {
+    if (!pg.isConnected) return; const idx = Math.round(pg.scrollTop / h), tt = $('.tt');
+    if (tt) { const x = new Date(U.mY, U.mM + idx - 1, 1); tt.textContent = monthName(x.getMonth()) + ' ' + x.getFullYear(); }
+    clearTimeout(t); t = setTimeout(() => { if (!pg.isConnected) return; const i = Math.round(pg.scrollTop / h); if (i !== 1) { const x = new Date(U.mY, U.mM + i - 1, 1); gotoMonth(x.getFullYear(), x.getMonth()); } }, 140);
+  }, { passive: true });
 }
 
 /* ---------- sheets ---------- */
@@ -428,7 +443,7 @@ document.addEventListener('change', (e) => {
 });
 // swipe left/right on the month grid to change month
 let sx = 0, sy = 0;
-document.addEventListener('touchstart', (e) => { if (e.target.closest('#calgrid')) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; } else sx = 0; }, { passive: true });
+document.addEventListener('touchstart', (e) => { if (e.target.closest('#pager')) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; } else sx = 0; }, { passive: true });
 document.addEventListener('touchend', (e) => { if (!sx) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = 0; if (Math.abs(dx) > 60 && Math.abs(dy) < 40) (dx < 0 ? A.mnext : A.mprev)(); }, { passive: true });
 
 /* ---------- start ---------- */
@@ -437,6 +452,8 @@ document.addEventListener('touchend', (e) => { if (!sx) return; const dx = e.cha
   try { db = await idb(); const saved = await kvGet('state'); if (saved) S = C.normalize(saved); }
   catch (e) { memOnly = true; setTimeout(() => toast("Storage isn't available here, so changes won't be kept. Export a backup."), 500); }
   requestPersist();
+  MONTHS.forEach((m) => { new Image().src = 'stickers/Sticker-' + m + '.png'; });
+  let rh = innerHeight; addEventListener('resize', () => { if (Math.abs(innerHeight - rh) > 80 && !$('#sheet').classList.contains('open') && !U.settings && U.tab === 'cal' && !document.activeElement.closest('form')) { rh = innerHeight; render(); } });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   render();
   if (S.settings.lock) showPin('unlock'); else unlocked = true;
