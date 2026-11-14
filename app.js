@@ -50,7 +50,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener && matchMedia('(pref
 
 /* ---------- ui state ---------- */
 const T0 = todayStr();
-const U = { tab: 'cal', settings: false, sel: T0, mY: +T0.slice(0, 4), mM: +T0.slice(5, 7) - 1, newDue: 'none', showDone: false, hw: weekStartOf(T0), editHabits: false, hTab: 'weight', pY: +T0.slice(0, 4), pM: +T0.slice(5, 7) - 1 };
+const U = { tab: 'cal', settings: false, sel: T0, mY: +T0.slice(0, 4), mM: +T0.slice(5, 7) - 1, newDue: 'none', showDone: false, hw: weekStartOf(T0), editHabits: false, hTab: 'weight', cs: 0, pY: +T0.slice(0, 4), pM: +T0.slice(5, 7) - 1 };
 const TABS = [['cal', 'Calendar', 'cal'], ['todo', 'To-do', 'todo'], ['habits', 'Habits', 'sprout'], ['health', 'Health', 'heart']];
 
 /* ---------- calendar ---------- */
@@ -77,17 +77,17 @@ function monthPage(y, m, pageH) {
     const { shown, hidden } = weekSegs(ws, maxLanes);
     const cells = [...Array(7)].map((_, i) => {
       const ds = addDays(ws, i), d = parse(ds);
-      const cls = ['day', d.getMonth() !== m ? 'out' : '', ds === today ? 'today' : '', ds === U.sel ? 'sel' : ''].join(' ');
-      return `<button class="${cls}" data-a="pick" data-ds="${ds}" aria-label="${longDate(ds)}"><span class="n">${d.getDate()}</span></button>`;
+      const hol = holidayOn(ds), cls = ['day', d.getMonth() !== m ? 'out' : '', ds === today ? 'today' : '', ds === U.sel ? 'sel' : '', hol ? 'hol' : ''].join(' ');
+      return `<button class="${cls}" data-a="pick" data-ds="${ds}" aria-label="${longDate(ds)}${hol ? ', ' + esc(hol) : ''}"><span class="n">${d.getDate()}</span></button>`;
     }).join('');
     const bars = shown.map((g) => {
       const left = (g.c0 / 7) * 100, w = ((g.c1 - g.c0 + 1) / 7) * 100, inL = g.startsHere ? 2 : 0, inR = g.endsHere ? 2 : 0;
       return `<div class="bar ${g.startsHere ? 's' : ''} ${g.endsHere ? 'e' : ''}" style="--dot:${catOf(g.e.cat).dot};left:calc(${left}% + ${inL}px);width:calc(${w}% - ${inL + inR}px);top:${g.lane * 16}px">${esc(g.e.name)}</div>`;
     }).join('');
     const more = hidden.map((n, i) => (n ? `<span class="more" style="left:${(i / 7) * 100}%;width:${100 / 7}%">+${n}</span>` : '')).join('');
-    return `<div class="wk" style="height:${rowH}px"><div class="days">${cells}</div><div class="bars">${bars}</div>${more}</div>`;
+    return `<div class="wk"><div class="days">${cells}</div><div class="bars">${bars}</div>${more}</div>`;
   }).join('');
-  return `<div class="page" style="height:${pageH}px">${rows}</div>`;
+  return `<div class="page" style="--n:${weeks.length}">${rows}</div>`;
 }
 const calSizes = () => { const calH = Math.min(Math.round(innerHeight * 0.65), Math.max(260, ($('#view').clientHeight || innerHeight * 0.8) - 150)); return { calH, pageH: calH - 24 }; };
 function evSub(e, ds) {
@@ -111,8 +111,8 @@ function vCal() {
   const list = evs.map((e) => `<button class="ev" data-a="editEvent" data-id="${esc(e.id)}"><i style="--dot:${catOf(e.cat).dot}"></i><div><b>${esc(e.name)}</b><span>${evSub(e, ds)}</span></div></button>`).join('')
     + (tks.length ? `<div class="h">To-do</div><div class="card">${tks.map((t) => taskRow(t, false)).join('')}</div>` : '');
   const pages = [-1, 0, 1].map((o) => { const t = new Date(U.mY, U.mM + o, 1); return monthPage(t.getFullYear(), t.getMonth(), pageH); }).join('');
-  return `<div class="calwrap" style="height:${calH}px"><div class="dow">${'SMTWTFS'.split('').map((x) => `<div>${x}</div>`).join('')}</div><div class="pager" id="pager" style="height:${pageH}px">${pages}</div></div>
-<section class="agenda">${banner}<div class="ag-h"><div><h2>${DOW[d.getDay()].slice(0, 3)}, ${mon3(d.getMonth())} ${d.getDate()}</h2>${hol ? `<small>${esc(hol)}</small>` : ''}</div><div class="ag-r"><button class="addb" data-a="newEvent" aria-label="New event">${ic('plus', 22, 2.4)}</button></div></div>
+  return `<div class="calwrap"><div class="dow">${'SMTWTFS'.split('').map((x) => `<div>${x}</div>`).join('')}</div><div class="pager" id="pager">${pages}</div></div>
+<section class="agenda"><button class="grab" data-a="toggleCal" aria-label="Shrink or expand the calendar"><i></i></button>${banner}<div class="ag-h"><div><h2>${DOW[d.getDay()].slice(0, 3)}, ${mon3(d.getMonth())} ${d.getDate()}</h2>${hol ? `<small>${esc(hol)}</small>` : ''}</div><div class="ag-r"><button class="addb" data-a="newEvent" aria-label="New event">${ic('plus', 22, 2.4)}</button></div></div>
 ${list || '<div class="empty">Nothing planned.</div>'}<div class="sticker"><img id="stk" src="stickers/Sticker-${MONTHS[d.getMonth()]}.png" width="104" height="104" alt="" decoding="sync"></div></section>`;
 }
 
@@ -232,16 +232,34 @@ function render() {
   }
   $('#tabs').innerHTML = TABS.map(([k, l, i]) => `<button data-a="tab" data-k="${k}" class="${!U.settings && U.tab === k ? 'on' : ''}" ${!U.settings && U.tab === k ? 'aria-current="page"' : ''}>${ic(i, 24, !U.settings && U.tab === k ? 2.1 : 1.7)}${l}</button>`).join('');
   $('#view').scrollTop = keep;
-  wirePager();
+  wirePager(); wireAgenda();
 }
 
+// Drag the events area up and the month shrinks to half height; drag down at the top to bring it back.
+let calCtl = null;
+function wireAgenda() {
+  const ag = $('.agenda'), view = $('#view'); calCtl = null; if (!ag) return;
+  const { calH } = calSizes(), MAX = Math.round(calH * 0.5); let ly = 0, drag = false, anim = 0, dir = 0;
+  const apply = (v) => { U.cs = Math.max(0, Math.min(MAX, v)); view.style.setProperty('--calh', (calH - U.cs) + 'px'); const pg = $('#pager'); if (pg) pg.scrollTop = pg.clientHeight; $('.calwrap').classList.toggle('collapsed', U.cs > MAX * 0.3); };
+  const tween = (to) => { cancelAnimationFrame(anim); const from = U.cs, t0 = performance.now(); const step = (t) => { const k = Math.min(1, (t - t0) / 180); apply(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) anim = requestAnimationFrame(step); }; anim = requestAnimationFrame(step); };
+  calCtl = { toggle: () => tween(U.cs > 0 ? 0 : MAX) };
+  apply(U.cs);
+  ag.addEventListener('touchstart', (e) => { ly = e.touches[0].clientY; cancelAnimationFrame(anim); drag = false; }, { passive: true });
+  ag.addEventListener('touchmove', (e) => {
+    const y = e.touches[0].clientY, d = ly - y; ly = y;
+    if (d > 0 && U.cs < MAX) { if (e.cancelable) e.preventDefault(); apply(U.cs + d); drag = true; dir = 1; }
+    else if (d < 0 && ag.scrollTop <= 0 && U.cs > 0) { if (e.cancelable) e.preventDefault(); apply(U.cs + d); drag = true; dir = -1; }
+  }, { passive: false });
+  const end = () => { if (drag) { drag = false; tween(dir > 0 ? (U.cs > MAX * 0.2 ? MAX : 0) : (U.cs < MAX * 0.8 ? 0 : MAX)); } };
+  ag.addEventListener('touchend', end, { passive: true }); ag.addEventListener('touchcancel', end, { passive: true });
+}
 function wirePager() {
   const pg = $('#pager'); if (!pg) return;
-  const h = pg.clientHeight; pg.scrollTop = h; let t;
+  pg.scrollTop = pg.clientHeight; let t;
   pg.addEventListener('scroll', () => {
-    if (!pg.isConnected) return; const idx = Math.round(pg.scrollTop / h), tt = $('.tt');
+    if (!pg.isConnected) return; const h = pg.clientHeight, idx = Math.round(pg.scrollTop / h), tt = $('.tt');
     if (tt) { const x = new Date(U.mY, U.mM + idx - 1, 1); tt.textContent = monthName(x.getMonth()) + ' ' + x.getFullYear(); }
-    clearTimeout(t); t = setTimeout(() => { if (!pg.isConnected) return; const i = Math.round(pg.scrollTop / h); if (i !== 1) { const x = new Date(U.mY, U.mM + i - 1, 1); gotoMonth(x.getFullYear(), x.getMonth()); } }, 140);
+    clearTimeout(t); t = setTimeout(() => { if (!pg.isConnected) return; const h = pg.clientHeight, i = Math.round(pg.scrollTop / h); if (i !== 1) { const x = new Date(U.mY, U.mM + i - 1, 1); gotoMonth(x.getFullYear(), x.getMonth()); } }, 140);
   }, { passive: true });
 }
 
@@ -360,6 +378,7 @@ function gotoMonth(y, m) { U.mY = y; U.mM = m; const t = todayStr(); U.sel = y =
 const A = {
   tab: (d) => { const again = !U.settings && U.tab === d.k; U.settings = false; U.tab = d.k; if (d.k === 'cal' && again) return A.today(); render(); if (!again) $('#view').scrollTop = 0; },
   settings: () => { U.settings = true; render(); $('#view').scrollTop = 0; }, back: () => { U.settings = false; render(); },
+  toggleCal: () => { if (calCtl) calCtl.toggle(); },
   today: () => { const t = todayStr(); U.sel = t; U.mY = +t.slice(0, 4); U.mM = +t.slice(5, 7) - 1; render(); $('#view').scrollTop = 0; },
   pick: (d) => { U.sel = d.ds; const m = monthOf(d.ds); U.mY = m.y; U.mM = m.m; render(); },
   mprev: () => gotoMonth(U.mM === 0 ? U.mY - 1 : U.mY, (U.mM + 11) % 12), mnext: () => gotoMonth(U.mM === 11 ? U.mY + 1 : U.mY, (U.mM + 1) % 12),
