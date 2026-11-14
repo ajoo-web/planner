@@ -178,6 +178,10 @@ function healthPeriod() {
   const st = C.cycleStats(S.cycle, today), len = C.periodLen(S.cycle) || 5, pred = new Set(), ups = [];
   if (st.avg) { const lastStart = st.starts[st.starts.length - 1]; for (let k = 1; k <= 6 && ups.length < 3; k++) { const a = addDays(lastStart, st.avg * k), b = addDays(a, len - 1); if (b >= today) ups.push({ a, b }); } }
   ups.forEach((u) => { for (let i = 0; i < len; i++) pred.add(addDays(u.a, i)); });
+  const nx = ups[0], n = nx ? diffDays(today, nx.a) : null;
+  const when = n == null ? '' : n > 0 ? 'in ' + n + (n === 1 ? ' day' : ' days') : n === 0 ? 'today' : 'expected now';
+  const row = (l, v) => `<div class="stat"><span>${l}</span><b>${v}</b></div>`;
+  const cycleRows = nx ? row('Next period', shortDate(nx.a) + '<br><small class="sub">' + when + '</small>') + row('Last cycle', st.last + ' days') + row('Average cycle', st.avg + ' days') : `<div class="sub" style="padding:12px 0">Log two periods to see your cycle length and a prediction.</div>`;
   let cells = ''; for (let i = 0; i < first; i++) cells += '<div></div>';
   for (let d = 1; d <= dim; d++) {
     const ds = y + '-' + pad(m + 1) + '-' + pad(d), on = S.cycle[ds] === 'period', cls = ['pd', on ? 'on' : '', !on && pred.has(ds) && ds >= today ? 'pred' : '', ds === today ? 'today' : ''].join(' ');
@@ -185,7 +189,8 @@ function healthPeriod() {
   }
   return `<div class="card pad"><div class="nvrow" style="margin:-6px 0 4px"><div class="nl"><button class="pill sm" data-a="pToday">Today</button></div><div class="mnav"><button class="ib sm" data-a="pprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt">${monthName(m)} ${y}</span><button class="ib sm" data-a="pnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div><div></div></div>
 <div class="pgrid">${'SMTWTFS'.split('').map((x) => `<div class="dw">${x}</div>`).join('')}${cells}</div></div>
-<div class="sub" style="margin:8px 4px 0">Tap a day to mark or unmark it.</div>`;
+<div class="sub" style="margin:8px 4px 0">Tap a day to mark or unmark it.</div>
+<div class="card" style="padding:0 14px;margin-top:16px">${cycleRows}</div>`;
 }
 
 /* ---------- settings ---------- */
