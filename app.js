@@ -225,7 +225,11 @@ function render() {
     if (U.tab === 'cal') {
       left = `<button class="pill" data-a="today">Today</button>`;
       center = `<div class="mnav"><button class="ib sm" data-a="mprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt">${monthName(U.mM)} ${U.mY}</span><button class="ib sm" data-a="mnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div>`;
-    } else center = `<div class="title">${{ todo: 'To-do', habits: 'Habits', health: 'Health' }[U.tab]}</div>`;
+    } else {
+      if (U.tab === 'habits') left = `<button class="pill" data-a="hToday">Today</button>`;
+      if (U.tab === 'health' && U.hTab === 'period') left = `<button class="pill" data-a="pToday">Today</button>`;
+      center = `<div class="title">${{ todo: 'To-do', habits: 'Habits', health: 'Health' }[U.tab]}</div>`;
+    }
     bar.innerHTML = `<div class="l">${left}</div><div class="c">${center}</div><div class="r">${gear}</div>`;
     $('#view').classList.toggle('calview', U.tab === 'cal');
     $('#view').innerHTML = { cal: vCal, todo: vTodo, habits: vHabits, health: vHealth }[U.tab]();
@@ -381,6 +385,8 @@ const A = {
     else { t.done = false; t.doneAt = null; }
     save(); render();
   },
+  hToday: () => { U.hw = weekStartOf(todayStr()); render(); },
+  pToday: () => { const t = todayStr(); U.pY = +t.slice(0, 4); U.pM = +t.slice(5, 7) - 1; render(); },
   hprev: () => { U.hw = addDays(U.hw, -7); render(); }, hnext: () => { U.hw = addDays(U.hw, 7); render(); },
   toggleHabit: (d) => { const set = new Set(S.habitLog[d.ds] || []); set.has(d.id) ? set.delete(d.id) : set.add(d.id); if (set.size) S.habitLog[d.ds] = [...set]; else delete S.habitLog[d.ds]; save(); render(); },
   toggleEditHabits: () => { U.editHabits = !U.editHabits; render(); },
