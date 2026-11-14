@@ -183,8 +183,7 @@ function healthPeriod() {
     cells += `<button class="${cls}" data-a="periodDay" data-ds="${ds}" aria-label="${longDate(ds)}${on ? ', period' : ''}"><span>${d}</span></button>`;
   }
   return `<div class="card pad"><div class="mnav" style="margin:-6px 0 4px"><button class="ib" data-a="pprev" aria-label="Previous month">${ic('left', 20, 2.2)}</button><span class="tt" style="min-width:140px;text-align:center">${MONTHS[m]} ${y}</span><button class="ib" data-a="pnext" aria-label="Next month">${ic('right', 20, 2.2)}</button></div>
-<div class="pgrid">${'SMTWTFS'.split('').map((x) => `<div class="dw">${x}</div>`).join('')}${cells}</div>
-<div class="legend"><span><i style="background:var(--rose)"></i>Period</span><span><i style="border:2px dashed var(--rose)"></i>Predicted</span></div></div>
+<div class="pgrid">${'SMTWTFS'.split('').map((x) => `<div class="dw">${x}</div>`).join('')}${cells}</div></div>
 <div class="sub" style="margin:8px 4px 0">Tap a day to mark or unmark it.</div>`;
 }
 
