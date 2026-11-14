@@ -65,7 +65,8 @@ svg{display:block;flex:none}
 .ag-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .ag-h h2{margin:0;font:700 19px var(--font);white-space:nowrap}
 .ag-r{display:flex;align-items:center;gap:10px;flex:none}
-.stk{width:60px;height:60px;display:block;margin:-6px 0}
+.sticker{display:flex;justify-content:center;padding:12px 0 4px}
+.sticker img{width:104px;height:104px;display:block}
 .addb{width:42px;height:42px;border-radius:21px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center}
 .ag-h small{display:block;color:var(--mut);font-weight:600;font-size:13px;margin-top:1px}
 .ev{display:flex;align-items:stretch;gap:12px;width:100%;padding:11px 12px;background:var(--card);border-radius:14px;margin-bottom:8px}

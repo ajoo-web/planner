@@ -112,8 +112,8 @@ function vCal() {
     + (tks.length ? `<div class="h">To-do</div><div class="card">${tks.map((t) => taskRow(t, false)).join('')}</div>` : '');
   const pages = [-1, 0, 1].map((o) => { const t = new Date(U.mY, U.mM + o, 1); return monthPage(t.getFullYear(), t.getMonth(), pageH); }).join('');
   return `<div class="calwrap" style="height:${calH}px"><div class="dow">${'SMTWTFS'.split('').map((x) => `<div>${x}</div>`).join('')}</div><div class="pager" id="pager" style="height:${pageH}px">${pages}</div></div>
-<section class="agenda">${banner}<div class="ag-h"><div><h2>${DOW[d.getDay()].slice(0, 3)}, ${mon3(d.getMonth())} ${d.getDate()}</h2>${hol ? `<small>${esc(hol)}</small>` : ''}</div><div class="ag-r"><img class="stk" id="stk" src="stickers/Sticker-${MONTHS[d.getMonth()]}.png" width="60" height="60" alt="" decoding="sync"><button class="addb" data-a="newEvent" aria-label="New event">${ic('plus', 22, 2.4)}</button></div></div>
-${list || '<div class="empty">Nothing planned.</div>'}</section>`;
+<section class="agenda">${banner}<div class="ag-h"><div><h2>${DOW[d.getDay()].slice(0, 3)}, ${mon3(d.getMonth())} ${d.getDate()}</h2>${hol ? `<small>${esc(hol)}</small>` : ''}</div><div class="ag-r"><button class="addb" data-a="newEvent" aria-label="New event">${ic('plus', 22, 2.4)}</button></div></div>
+${list || '<div class="empty">Nothing planned.</div>'}<div class="sticker"><img id="stk" src="stickers/Sticker-${MONTHS[d.getMonth()]}.png" width="104" height="104" alt="" decoding="sync"></div></section>`;
 }
 
 /* ---------- to-do ---------- */
