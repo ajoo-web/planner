@@ -153,7 +153,7 @@ function vTrackers() {
   const st = C.cycleStats(S.cycle, today), rec = [...Array(7)].map((_, i) => addDays(today, i - 6));
   const till = st.daysTill == null ? 'Log 2+ periods' : st.daysTill > 0 ? 'in ' + st.daysTill + ' day' + (st.daysTill === 1 ? '' : 's') : st.daysTill === 0 ? 'expected today' : Math.abs(st.daysTill) + ' day' + (st.daysTill === -1 ? '' : 's') + ' late';
   const cycleCard = `<div class="card" style="padding:14px"><div class="row" style="justify-content:space-between"><div><div class="mut" style="font-size:12px;font-weight:700">Next period</div><div style="font-size:20px;font-weight:800">${till}</div></div><div style="text-align:right;font-size:12px;font-weight:700" class="mut">Last cycle ${st.last != null ? st.last + ' d' : '—'}<br>Average ${st.avg != null ? st.avg + ' d' : '—'}</div></div>
-<div class="cycdays">${rec.map((x) => { const s = S.cycle[x]; return `<button data-a="cycleDay" data-ds="${x}" class="${s || ''}" aria-label="${longDate(x)}: ${s === 'period' ? 'period' : s === 'choc' ? 'treat' : 'none'}">${DOW[parse(x).getDay()].slice(0, 1)}<b>${parse(x).getDate()}</b>${s === 'period' ? 'period' : s === 'choc' ? 'treat' : '&nbsp;'}</button>`; }).join('')}</div><div class="mut" style="font-size:12px;font-weight:600;margin-top:8px">Tap a day to cycle: period, treat, none.</div></div>`;
+<div class="cycdays">${rec.map((x) => { const s = S.cycle[x]; return `<button data-a="cycleDay" data-ds="${x}" class="${s || ''}" aria-label="${longDate(x)}: ${s === 'period' ? 'period' : s === 'choc' ? 'treat' : 'none'}">${DOW[parse(x).getDay()].slice(0, 1)}<b>${parse(x).getDate()}</b><span class="em" aria-hidden="true">${s === 'period' ? '🩸' : s === 'choc' ? '🍫' : ''}</span></button>`; }).join('')}</div><div class="mut" style="font-size:12px;font-weight:600;margin-top:8px">Tap a day to cycle: 🩸 period, 🍫 treat, none.</div></div>`;
   const hidden = S.settings.hideSensitive && !U.revealed;
   const guard = (inner) => hidden ? `<div class="reveal"><div class="blur" aria-hidden="true">${inner}</div><button class="ov" data-a="reveal">${ic('eye', 18)}Tap to show</button></div>` : inner;
   return `<div class="top"><h1 class="h1">Trackers</h1></div>
@@ -321,7 +321,7 @@ const A = {
   newList: () => openSheet(`<h3>New list</h3><form data-form="list"><label class="fld"><span>Name</span><input name="name" maxlength="24" autofocus></label><div class="acts"><button type="button" class="btn ghost" data-a="closeSheet">Cancel</button><button class="btn ink" type="submit">Add</button></div></form>`),
   fab: () => {
     if (U.view === 'tasks') return taskSheet({ due: U.taskTab === 'today' ? todayStr() : null });
-    if (U.view === 'today' || U.view === 'month') return openSheet(`<h3>Add</h3><div class="acts" style="flex-direction:column"><button class="btn" data-a="newEvent">New event</button><button class="btn sky" data-a="newTask">New task</button></div>`);
+    if (U.view === 'today' || U.view === 'month') return openSheet(`<h3>Add</h3><div class="acts col"><button class="btn" data-a="newEvent">New event</button><button class="btn sky" data-a="newTask">New task</button></div>`);
   },
   newEvent: () => eventSheet({ date: U.sel, startTime: null }), newTask: () => taskSheet({ due: U.sel }),
   editEvent: (d) => { const e = S.events.find((x) => x.id === d.id); if (e) eventSheet(e); },
