@@ -1,12 +1,12 @@
 // Pure logic: dates, recurrence, holidays, cycle stats, old-planner conversion. No DOM.
 export const CATS = [
-  { id: 'personal', label: 'Personal', bg: 'var(--sky)', dot: '#6BB3DE' },
-  { id: 'family', label: 'Family', bg: 'var(--peach)', dot: '#F2916A' },
-  { id: 'friends', label: 'Friends', bg: 'var(--rose)', dot: '#E88AA0' },
-  { id: 'network', label: 'Network', bg: 'var(--lav)', dot: '#9C8FE0' },
-  { id: 'work', label: 'Work', bg: 'var(--mint)', dot: '#4CB57A' },
-  { id: 'birthday', label: 'Birthday', bg: 'var(--butter)', dot: '#E8B923' },
-  { id: 'special', label: 'Special', bg: 'var(--apricot)', dot: '#E39A3B' },
+  { id: 'personal', label: 'Personal', bg: 'var(--sky)', dot: '#3B82F6' },
+  { id: 'family', label: 'Family', bg: 'var(--peach)', dot: '#F97316' },
+  { id: 'friends', label: 'Friends', bg: 'var(--rose)', dot: '#EC4899' },
+  { id: 'network', label: 'Network', bg: 'var(--lav)', dot: '#8B5CF6' },
+  { id: 'work', label: 'Work', bg: 'var(--mint)', dot: '#22A55B' },
+  { id: 'birthday', label: 'Birthday', bg: 'var(--butter)', dot: '#EAB308' },
+  { id: 'special', label: 'Special', bg: 'var(--apricot)', dot: '#EF4444' },
 ];
 export const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 export const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
