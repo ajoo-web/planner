@@ -279,9 +279,9 @@ function eventSheet(e) {
 <div class="rw"><span>Starts</span><input type="date" name="date" required value="${e.date}"></div>
 <div class="rw tm" ${allDay ? 'hidden' : ''}><span>Start time</span><input type="time" name="startTime" value="${e.startTime || '09:00'}"></div>
 <div class="rw"><span>Ends</span><input type="date" name="endDate" required value="${e.endDate || e.date}"></div>
-<div class="rw tm" ${allDay ? 'hidden' : ''}><span>End time</span><input type="time" name="endTime" value="${e.endTime || ''}"></div></div>
-<div class="group"><div class="rw"><span>Repeat</span><select name="rtype">${repeatOpts(r.type)}</select></div>
-<div class="sw-row" id="catPick" role="radiogroup" aria-label="Color">${CATS.map((c) => `<button type="button" class="sw ${cat === c.id ? 'on' : ''}" data-a="pickCat" data-c="${c.id}" style="--dot:${c.dot}" role="radio" aria-checked="${cat === c.id}" aria-label="${c.label}"></button>`).join('')}</div><input type="hidden" name="cat" value="${cat}"></div>
+<div class="rw tm" ${allDay ? 'hidden' : ''}><span>End time</span><input type="time" name="endTime" value="${e.endTime || ''}"></div>
+<div class="rw"><span>Repeat</span><select name="rtype">${repeatOpts(r.type)}</select></div></div>
+<div class="group"><div class="sw-row" id="catPick" role="radiogroup" aria-label="Color">${CATS.map((c) => `<button type="button" class="sw ${cat === c.id ? 'on' : ''}" data-a="pickCat" data-c="${c.id}" style="--dot:${c.dot}" role="radio" aria-checked="${cat === c.id}" aria-label="${c.label}"></button>`).join('')}</div><input type="hidden" name="cat" value="${cat}"></div>
 <div class="group"><div class="rw full"><textarea name="notes" placeholder="Notes" aria-label="Notes">${esc(e.notes || '')}</textarea></div></div>
 ${isNew ? '' : `<div class="group"><button type="button" class="btnrow danger center" data-a="delEvent" data-id="${esc(e.id)}">Delete event</button></div>`}</form>`);
 }
