@@ -157,3 +157,16 @@ textarea.note{width:100%;min-height:110px;border:0;background:transparent;resize
 .banner .btn{height:38px;flex:none;padding:0 14px;background:var(--card)}
 @media print{#tabs,#fab{display:none}}
 #fab[hidden]{display:none}
+
+.acts.col{flex-direction:column}.acts.col .btn{flex:none;width:100%;min-height:52px}
+.btn{min-height:48px;line-height:1.2}
+/* sheet forms: keep iOS date/time/select inputs inside the sheet */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.fld{min-width:0}
+.fld input,.fld select,.fld textarea{display:block;width:100%;max-width:100%;min-width:0;-webkit-appearance:none;appearance:none;border-radius:14px}
+.fld input[type=date],.fld input[type=time]{min-height:46px;text-align:left;line-height:normal;padding-top:0;padding-bottom:0}
+.fld input::-webkit-date-and-time-value{text-align:left;min-height:1.3em}
+.fld input::-webkit-datetime-edit{padding:0}
+.fld select{padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A93AB' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+#sheet .pane{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.cycdays button{height:64px}.cycdays button .em{font-size:17px;line-height:1;min-height:17px}
