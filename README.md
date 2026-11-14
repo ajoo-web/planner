@@ -1,6 +1,6 @@
 # Planner
 
-A private planner that lives entirely on your phone. No account, no server, no tracking:
+A simple, private planner that lives entirely on your phone: a calendar, to-dos, a habit log, and weight and period tracking. Light and dark mode. No account, no server, no tracking:
 everything is stored in the browser's IndexedDB on your own device.
 
 ## Put it on your phone (iPhone)
@@ -18,9 +18,9 @@ cleared after a week of not opening them.
 If you publish this at the same address as the old planner, opening it on your laptop will
 offer to import the old data automatically. Then:
 
-1. On the laptop: **Privacy & backup → Export** (add a passphrase if you like).
+1. On the laptop: **⚙ Settings → Export a backup file** (add a passphrase if you like).
 2. Send the file to your phone (AirDrop, Files, email to yourself).
-3. On the phone: **Privacy & backup → Import** and choose the file.
+3. On the phone: **⚙ Settings → Restore from a backup file** and choose the file.
 
 If the new app lives at a different address, run this once in the old planner's browser console
 to download its data, then use **Import from my old planner**:

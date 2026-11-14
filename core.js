@@ -92,6 +92,18 @@ export function cycleStats(cycle, today) {
   return { last: lens[lens.length - 1], avg, next, daysTill: diffDays(today, next), starts };
 }
 
+export function periodRuns(cycle) {
+  const all = Object.keys(cycle).filter((k) => cycle[k] === 'period').sort(), runs = [];
+  all.forEach((d, i) => { if (i === 0 || diffDays(all[i - 1], d) > 1) runs.push(1); else runs[runs.length - 1]++; });
+  return runs;
+}
+export function periodLen(cycle) { const r = periodRuns(cycle); return r.length ? Math.round(r.reduce((a, b) => a + b, 0) / r.length) : null; }
+export function habitStreak(log, id, today) {
+  let d = (log[today] || []).includes(id) ? today : addDays(today, -1), n = 0;
+  while ((log[d] || []).includes(id)) { n++; d = addDays(d, -1); }
+  return n;
+}
+
 // ---- state ----
 export const ICON_KEYS = ['stretch', 'heart', 'dumb', 'book', 'drop', 'today'];
 export const defaults = () => ({
