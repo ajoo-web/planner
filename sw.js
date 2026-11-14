@@ -1,5 +1,5 @@
 // Offline cache for the app shell. Planner data is never touched here: it lives in IndexedDB.
-const VERSION = 'planner-v6';
+const VERSION = 'planner-v9';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'core.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'].concat(
   ['January','February','March','April','May','June','July','August','September','October','November','December'].map((m) => 'stickers/Sticker-' + m + '.png'));
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -7,6 +7,6 @@ self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) =
 // Network first (so updates arrive as soon as you're online), cache as the offline fallback.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
-  e.respondWith(fetch(e.request).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); } return r; })
+  e.respondWith(fetch(e.request, { cache: 'no-store' }).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); } return r; })
     .catch(() => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match('index.html'))));
 });
